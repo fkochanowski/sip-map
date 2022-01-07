@@ -1,0 +1,21 @@
+{
+  "name": "new-map",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^2.6.7"
+  },
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "ol": "latest",
+    "require": "^0.4.4"
+  },
+  "description": "This example demonstrates how the `ol` package can be used with [Vite](https://vitejs.dev/).",
+  "main": "main.js",
+  "author": "",
+  "license": "ISC"
+}
