@@ -6,7 +6,7 @@ import OSM from 'ol/source/OSM';
 import markerList from '/markerList.js';
 
 //fullscreen control
-import {FullScreen, defaults as defaultControls, ZoomSlider, MousePosition} from 'ol/control';
+import {FullScreen, defaults as defaultControls, ZoomSlider, MousePosition, ScaleLine, OverviewMap} from 'ol/control';
 
 //points
 import Feature from 'ol/Feature';
@@ -17,6 +17,44 @@ import {Icon, Style} from 'ol/style';
 import {Vector as VectorLayer} from 'ol/layer';
 import { fromLonLat } from 'ol/proj';
 import {createStringXY} from 'ol/coordinate';
+
+const unitsSelect = document.getElementById('units');
+
+let scaleType = 'scaleline';
+let scaleBarSteps = 4;
+let scaleBarText = true;
+let control;
+
+const overviewMapControl = new OverviewMap({
+  // see in overviewmap-custom.html to see the custom CSS used
+  className: 'ol-overviewmap ol-custom-overviewmap',
+  layers: [
+    new TileLayer({
+      source: new OSM({
+      }),
+    }),
+  ],
+  collapseLabel: '\u00BB',
+  label: '\u00AB',
+  collapsed: true,
+});
+
+function scaleControl() {
+  if (scaleType === 'scaleline') {
+    control = new ScaleLine({
+      units: unitsSelect.value,
+    });
+    return control;
+  }
+  control = new ScaleLine({
+    units: unitsSelect.value,
+    bar: true,
+    steps: scaleBarSteps,
+    text: scaleBarText,
+    minWidth: 140,
+  });
+  return control;
+}
 
 const mousePositionControl = new MousePosition({
   coordinateFormat: createStringXY(4),
@@ -29,18 +67,26 @@ const mousePositionControl = new MousePosition({
 
 const bistroStyle = new Style({
   image: new Icon({
-    anchor: [0, 30],
-    anchorXUnits: 'fraction',
+    anchor: [15, 40],
+    anchorXUnits: 'pixels',
     anchorYUnits: 'pixels',
     src: 'data/iconBistro.png',
   }),
 });
 const locoStyle = new Style({
   image: new Icon({
-    anchor: [0, 30],
-    anchorXUnits: 'fraction',
+    anchor: [15, 40],
+    anchorXUnits: 'pixels',
     anchorYUnits: 'pixels',
     src: 'data/iconLoco.png',
+  }),
+});
+const eduStyle = new Style({
+  image: new Icon({
+    anchor: [15, 40],
+    anchorXUnits: 'pixels',
+    anchorYUnits: 'pixels',
+    src: 'data/iconEdu.png',
   }),
 });
 
@@ -60,7 +106,9 @@ for(let i = 0; i < featuresList.length; i++){
     featuresList[i].setStyle(bistroStyle);
   } else if(featuresList[i].get('type') === 'loco'){
     featuresList[i].setStyle(locoStyle);
-  }
+  } else if(featuresList[i].get('type') === 'edu'){
+  featuresList[i].setStyle(eduStyle);
+}
 }
 const vectorSource = new VectorSource({
   features: featuresList
@@ -71,7 +119,7 @@ const vectorLayer = new VectorLayer({
 });
 
 const map = new Map({
-  controls: defaultControls().extend([new FullScreen()]).extend([mousePositionControl]),
+  controls: defaultControls().extend([new FullScreen()]).extend([mousePositionControl]).extend([scaleControl()]).extend([overviewMapControl]),
   layers: [ new TileLayer({
     source: new OSM()
   }), vectorLayer
@@ -130,4 +178,25 @@ map.on('pointermove', function (e) {
 map.on('movestart', function () {
   $(element).popover('dispose');
 });
+
+function onChange() {
+  control.setUnits(unitsSelect.value);
+}
+function onChangeType() {
+  scaleType = typeSelect.value;
+  if (typeSelect.value === 'scalebar') {
+    stepsSelect.style.display = 'inline';
+    showScaleTextDiv.style.display = 'inline';
+    map.removeControl(control);
+    map.addControl(scaleControl());
+  } else {
+    stepsSelect.style.display = 'none';
+    showScaleTextDiv.style.display = 'none';
+    map.removeControl(control);
+    map.addControl(scaleControl());
+  }
+}
+
+
+
 
